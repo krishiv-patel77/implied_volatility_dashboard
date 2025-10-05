@@ -4,15 +4,22 @@ A Tkinter-based GUI application for quickly analyzing implied volatility levels 
 ![App Screenshot](./app_screenshot.png)
 
 ## What is Implied Volatility?
-Within the Black Scholes Option Pricing Model, there are 5 parameters: Strike Price, Spot Price, Days till Expiration (annualized), sigma (volatility), and risk-free rate. If given these 5 parameters, the black scholes partial differential equations will output a call or put price depending on the variation used. 
+Within the Black-Scholes Option Pricing Model, there are five key parameters:
+- Strike Price (K)
+- Spot Price (S)
+- Days till Expiration (T, annualized)
+- Sigma (Volatility)
+- Risk-free rate (r)
 
-However, in the real world, if we consider the economic laws of equilibrium, in any given market, the option price (which is the final output of Black Scholes) is readily avaliable. This price the market reaches could be seen as a direct consequence of the laws of supply and demand, whereby buyers and sellers within a market will reach an equilibrium price that we can see as the market price. If the balance shifts, the price will rise and fall. Now, whether this market price is the fair price is a different question entirely, but it is a price nonetheless. 
+Given these inputs, the Black-Scholes partial differential equation outputs the fair value of a call or put option.
+
+However, in the real world, the option price is readily avaliable. This market price emerges from the economic law of supply and demand, where buyers and sellers continuously negotiate until reaching an equilibrium price. While this equilibrium may not always represent the “fair” price, it reflects the current consensus of value.
 
 Furthermore, other parameters like days till expiration, strike price, spot price, and the risk-free rate (10Y Bond Yield) are also readily avaliable. The only parameter that is not is the volatility of the underlying asset, sigma. 
 
-Instead of trying to guess the values of sigma, we instead inversely use the Black Scholes PDE, using all known values to then find the volatility that is implied by the current market price. For example, say that NVDA has an earnings event coming up and the market expects its earnings to increase. As a result, we see the prices in the market for call options increasing. This is because demand for NVDA call options has increased due to further expectations. This means that future volatility is already priced into the market price and so when we use this market price to extract the implied volatility for the future, we are essentially getting a sense of what the market expects in terms of volatility going forward. This can also paint a picture for the expected magnitude of price movement (without directional bias) along with market fear or uncertainty. 
+Instead of guessing volatility, traders invert the Black-Scholes equation, using all known inputs to solve for the volatility implied by the current market price - hence, Implied Volatility (IV).
 
-Some caveats include that we don't know how far forward and the fact that the market could be wrong about the volatility. If NVDA's earnings come out and they are actually much lower than what the market had expected, since the market hadn't priced this in, the price will see a massive drop which occurs because the market is trying to adjust to the new information and find the equilibrium price again. 
+Instead of trying to guess the values of sigma, we instead inversely use the Black Scholes PDE, using all known values to then find the volatility that is implied by the current market price. For example, say that NVDA has an earnings event coming up and the market expects its earnings to increase. As a result, we see the prices in the market for call options increasing. This is because demand for NVDA call options has increased due to further expectations. This means that future volatility is already priced into the market price and so when we use this market price to extract the implied volatility for the future, we are essentially getting a sense of what the market expects in terms of volatility going forward. This can also paint a picture for the expected magnitude of price movement (without directional bias) along with market fear or uncertainty. 
 
 Overall, Implied Volatility is a very important metric using in option derivatives trading as it gives a picture of the future volatility the market expects to occur which can be used to make trading decisions or even base entire strategies on. 
 
@@ -50,10 +57,10 @@ The reason for this is to see whether there is any connection between IV today a
 We know the characteristics of IV differ from instrument to instrument and thus this application is meant to faciliate the analysis of IV both historically and currently for any given instrument. 
 
 #### Key Insights:
-Slope < 1: Indicates mean reversion (high IV today → lower IV in 30 days)
-Slope = 1: IV generally stays constant over 30 day window relative to today
-Slope > 1: IV exhibits momentum (high IV today → even higher IV ahead)
-R² value: Measures predictive power of current IV for future IV (generally tends to be low for the unconditional regression)
+- Slope < 1: Indicates mean reversion (high IV today → lower IV in 30 days)
+- Slope = 1: IV generally stays constant over 30 day window relative to today
+- Slope > 1: IV exhibits momentum (high IV today → even higher IV ahead)
+- R² value: Measures predictive power of current IV for future IV (generally tends to be low for the unconditional regression)
 
 
 ### 2. Vol Difference vs. Current Vol (Regime Analysis)
