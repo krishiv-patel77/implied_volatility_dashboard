@@ -387,7 +387,7 @@ class ImpliedVolatilityDashboard():
                 minimum = self.volatility_data['implied_vol'].min()
                 maximum = self.volatility_data['implied_vol'].max()
 
-                vol_range_text = f"Min: {minimum} | Mean: {avg_vol} | Max: {maximum}"
+                vol_range_text = f"Min: {minimum: .3f} | Mean: {avg_vol: .3f} | Max: {maximum: .3f}"
             else:
                 vol_range_text = "N/A"
 
@@ -433,7 +433,7 @@ class ImpliedVolatilityDashboard():
             color="black"
         elif current_percentile > 0.2:
             regime="BELOW AVG IV"
-            color="blue"
+            color="deep sky blue"
         else:
             regime="LOW IV"
             color="green"
@@ -449,7 +449,7 @@ class ImpliedVolatilityDashboard():
             rev_color = "red"
         elif current_percentile < .2:
             reversion = "EXPECT MEAN REVERSION UP"
-            rev_color = "blue"
+            rev_color = "deep sky blue"
         else:
             reversion = "NEUTRAL"
             rev_color = "BLACK"
