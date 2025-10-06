@@ -1,105 +1,221 @@
-# Implied Volatility Trading Dashboard
-A Tkinter-based GUI application for quickly analyzing implied volatility levels for any given equity ticker using real market data provided by Interactive Brokers (need an IB account to run this program)
+# Implied Volatility Dashboard
+
+A **Tkinter-based GUI** application for visualizing and analyzing **implied volatility (IV)** dynamics for any given equity ticker using **real market data from Interactive Brokers (IB TWS API)**.
 
 ![App Screenshot](./app_screenshot.png)
 
+---
+
+## Overview
+
+The **Implied Volatility Trading Dashboard** enables traders to analyze how implied volatility behaves across time and regimes, uncovering opportunities for **mean-reversion**, **momentum**, and **volatility-based trading strategies**.
+
+By integrating real-time market data from **Interactive Brokers**, the dashboard allows users to visualize **historical IV**, **forward IV relationships**, and **regime-dependent patterns**, giving a quantitative foundation for strategic decision-making in options trading.
+
+---
+
 ## What is Implied Volatility?
-Within the Black-Scholes Option Pricing Model, there are five key parameters:
-- Strike Price (K)
-- Spot Price (S)
-- Days till Expiration (T, annualized)
-- Sigma (Volatility)
-- Risk-free rate (r)
 
-Given these inputs, the Black-Scholes partial differential equation outputs the fair value of a call or put option.
+Within the **Black-Scholes Option Pricing Model**, the fair price of an option depends on five key inputs:
 
-However, in the real world, the option price is readily avaliable. This market price emerges from the economic law of supply and demand, where buyers and sellers continuously negotiate until reaching an equilibrium price. While this equilibrium may not always represent the “fair” price, it reflects the current consensus of value.
+| Parameter          | Symbol | Description                                     |
+| ------------------ | ------ | ----------------------------------------------- |
+| Strike Price       | K      | Exercise price of the option                    |
+| Spot Price         | S      | Current price of the underlying asset           |
+| Time to Expiration | T      | Remaining time until option maturity (in years) |
+| Volatility         | σ      | Annualized standard deviation of returns        |
+| Risk-Free Rate     | r      | Interest rate of a risk-free investment         |
 
-Furthermore, other parameters like days till expiration, strike price, spot price, and the risk-free rate (10Y Bond Yield) are also readily avaliable. The only parameter that is not is the volatility of the underlying asset, sigma. 
+In practice, an option’s **market price** is known. All key inputs except volatility are also observable. Therefore, traders **invert the Black-Scholes equation** to solve for the unknown volatility — the **implied volatility (IV)**.
 
-Instead of guessing volatility, traders invert the Black-Scholes equation, using all known inputs to solve for the volatility implied by the current market price - hence, Implied Volatility (IV).
+Implied Volatility represents the market’s **expectation of future volatility**. It encapsulates market sentiment, uncertainty, and anticipated magnitude of price movement — without directional bias.
 
-Instead of trying to guess the values of sigma, we instead inversely use the Black Scholes PDE, using all known values to then find the volatility that is implied by the current market price. For example, say that NVDA has an earnings event coming up and the market expects its earnings to increase. As a result, we see the prices in the market for call options increasing. This is because demand for NVDA call options has increased due to further expectations. This means that future volatility is already priced into the market price and so when we use this market price to extract the implied volatility for the future, we are essentially getting a sense of what the market expects in terms of volatility going forward. This can also paint a picture for the expected magnitude of price movement (without directional bias) along with market fear or uncertainty. 
+For instance, if **NVDA** is approaching earnings, option premiums may rise as traders expect increased volatility. Solving for IV using these market prices reveals how much volatility the market is “pricing in” ahead of the event.
 
-Overall, Implied Volatility is a very important metric using in option derivatives trading as it gives a picture of the future volatility the market expects to occur which can be used to make trading decisions or even base entire strategies on. 
-
+---
 
 ## Why Analyze Implied Volatility?
-1. Mean Reversion Property: IV has strong mean-reverting characteristics; when it reaches extreme levels, it tends to revert to its long-term average, creating trading opportunities.
-2. Regime Dependency: IV behaves differently in high vs. low volatility regimes, requiring regime-specific analysis for optimal trading strategies.
-3. Predictive Power: Current IV levels contain information about future volatility changes, which can be exploited through various options strategies.
-4. Risk Management: Understanding IV dyanmics for instruments within one's portfolio is very important for hedging purposes and sizing vega trades. 
 
+1. **Mean Reversion:**
+   IV tends to revert to its long-term mean. Extreme IV levels often signal potential trading opportunities.
 
-## Key Features: 
-- Direct Connection to IB TWS API (Note: you must have IB TWS Desktop app installed in order for the API to work, as it uses a TCP Socket where the port is specified within TWS)
+2. **Regime Dependence:**
+   Volatility behaves differently across high and low IV regimes, requiring adaptive analysis.
 
-- Historical Data Retrieval with Automatic Annualization (Ensure that daily is selected for volatility within TWS settings otherwise IV levels within the GUI will be inaccurate)
+3. **Predictive Insights:**
+   Today’s IV levels contain valuable information about the market's expectations for future volatility and sentiment towards the underlying, especially fear and uncertainty. 
 
-- Mean Reversion Signal (Not trading advice, only tips to consider)
-    - When IV > 80th percentile → Consider volatility-selling strategies
-    - When IV < 20th percentile → Consider volatility-buying strategies
+4. **Risk Management:**
+   Understanding IV dynamics helps traders hedge vega exposure and optimize position sizing.
 
+---
 
-## 3 Core Analyses
+## Key Features
+
+### 1. Direct IB API Integration
+
+* Connects to the **Interactive Brokers TWS/Gateway API**.
+* Retrieves **historical volatility** and **real-time implied volatility**.
+* Uses TCP socket connection (`127.0.0.1`) with configurable port (`7497` paper / `7496` live).
+
+### 2. Automated Historical Data Processing
+
+* Fetches **daily implied volatility bars**.
+* Automatically **annualizes volatility values** for consistency.
+* Supports forward-looking IV computation and regime classification.
+
+### 3. Mean-Reversion Signal Generator
+
+* Generates **non-trading advisory insights** based on percentile thresholds:
+
+  * IV > 80th percentile → *Volatility-selling conditions*
+  * IV < 20th percentile → *Volatility-buying conditions*
+
+---
+
+## Core Analyses
 
 ### 1. Forward IV vs. Current IV (Unconditional Regression)
-What it shows: Relationship between current implied volatility and the average IV over the next 30 days.
 
-To calculate the forward IV, I did a rolling average of the current implied volatility over a 30 day period (due to daily bars) and then shifted it 30 indices back. 
+**Purpose:** Explore how current IV predicts future IV (30-day average).
 
-Thus, for a given index, say index 0:
-    - We would have current IV as the current IV implied by the market
-    - We would also have the average IV over the next 30-days for comparison
+**Method:**
 
-The reason for this is to see whether there is any connection between IV today and IV in the future, hence the regression. Does low IV today imply higher IV moving forward? Does high IV today imply lower IV moving forward. If IV does tend to be mean-reverting, how strong is the signal? What if in the short-term, IV doesn't mean revert? How can we measure or be aware of this? 
+* Compute a 30-day rolling mean of IV (`forward_30d_IV`).
+* Shift the window backward by 30 days to align each day with its future average.
+* Perform regression: *Forward IV vs Current IV*.
 
-We know the characteristics of IV differ from instrument to instrument and thus this application is meant to faciliate the analysis of IV both historically and currently for any given instrument. 
+**Interpretation:**
 
-#### Key Insights:
-- Slope < 1: Indicates mean reversion (high IV today → lower IV in 30 days)
-- Slope = 1: IV generally stays constant over 30 day window relative to today
-- Slope > 1: IV exhibits momentum (high IV today → even higher IV ahead)
-- R² value: Measures predictive power of current IV for future IV (generally tends to be low for the unconditional regression)
+| Observation | Meaning                                               |
+| ----------- | ----------------------------------------------------- |
+| Slope < 1   | Mean reversion — high IV today implies lower IV ahead |
+| Slope = 1   | Neutral — IV remains constant                         |
+| Slope > 1   | Momentum — IV tends to continue rising/falling        |
+| R² value    | Indicates strength of predictive relationship         |
 
+---
 
-### 2. Vol Difference vs. Current Vol (Regime Analysis)
-What it shows: How the change in IV (Forward - Current) relates to current IV levels, split into high and low volatility regimes.
+### 2. Vol Difference vs. Current IV (Regime Analysis)
 
-We split the dataset at the intersection point between the y=x line and the regression line for the first unconditional regression. 
+**Purpose:** Examine regime-specific IV dynamics.
 
-We take a look at a x-value, or the current IV, of this intersection point and anything greater than this intersection current IV (to the right) will be classified as high volatility regime data points and anything to the left of the current IV x-intersection point will be classified as low volatility regime. It is important to note that high and low volatility regimes are not referring to the regression line in the first graph but the x-value which is current IV.
+**Process:**
 
-We also take the vol difference between the current and forward looking IVs because it makes it much easier to see relationships. 
-    - If vol difference is negative, this means forward 30 day avg IV is lower than current IV 
-    - If vol difference is positive, this means forward 30 day avg IV is higher than current IV
+* Define regimes by the **intersection point** of the regression line and the y=x line from the previous analysis.
+* Split data into **high-volatility** and **low-volatility** regimes based on this intersection x-value.
+* Calculate **Vol Difference** = Forward IV − Current IV.
 
-#### Key Insights:
-- Negative slope in high regime: High IV predicts decreasing IV (strong mean reversion)
-- Positive slope in low regime: Low IV predicts increasing IV (mean reversion from below)
-- Different slopes: Confirms regime-dependent behavior
-- y=0 line: Represents no change (Current IV = Forward IV)
+**Insights:**
 
+| Regime                                 | Interpretation                                          |
+| -------------------------------------- | ------------------------------------------------------- |
+| High-Volatility (Right of x-intercept) | Negative slope → IV likely to decrease (mean reversion) |
+| Low-Volatility (Left of x-intercept)   | Positive slope → IV likely to increase                  |
+| y=0 Line                               | No change — Forward IV = Current IV                     |
 
-### 3. Implied Volatility Time Series 
-What it shows: Historical IV evolution overtime with percentile bands
+> Note: The high-volatility (right of x-intercept) and low-volatility (left of x-intercept) are referring to the current IV values (x-values). If these x-values are to the right of the x-intercept, they represent higher current IV values and vice versa for the x-values to the left of the intercept. 
 
+---
 
-## Practical Use Cases
-1. Option Selling Strategies
-    - If time series IV above the 75th percentile band
-    - If high vol regime (2nd graph) has strong negative slope (R^2 > 0.5) 
-    - If current vol regime is "HIGH IV" 
-    - Might be a good time to go short vega(ofc this is not a trading model but that is one use case)
-2. Option Buying Strategies
-    - If time series IV below 25th percentile band
-    - If low vol regime (2nd graph) has strong positive slope (R^2 > 0.5)
-    - If current vol regime is "LOW IV"
-    - Might be good time for long vega positions 
+### 3. Implied Volatility Time Series
 
+**Purpose:** Visualize long-term IV evolution with percentile bands (25th, 50th, 75th).
 
-## Setup
-1. Need uv package manager installed (pip install uv in GLOBAL environment not a venv)
-2. uv run main.py runs the app (no need for any other setup)
+**Use Cases:**
 
+* Identify volatility extremes.
+* Track shifts between volatility regimes.
+* See historical trends
 
+---
+
+## Practical Trading Applications
+
+### 1. Option Selling Scenarios
+
+* Time-series IV above 75th percentile
+* High-vol regime shows strong negative slope (R² > 0.5)
+* Current IV regime classified as *High IV*
+  → *Potential setup for short vega positions.*
+
+### 2. Option Buying Scenarios
+
+* Time-series IV below 25th percentile
+* Low-vol regime shows strong positive slope (R² > 0.5)
+* Current IV Regime classified as *LOW IV*
+  → *Potential setup for long vega positions.*
+
+> ⚠️ These are analytical insights, **not trading recommendations**.
+
+---
+
+## Installation
+
+### Prerequisites
+
+```
+Interactive Brokers TWS or Gateway Installed
+Valid Paper or Live IB Account
+```
+
+### Dependencies
+
+* `tkinter` — GUI framework
+* `pandas`, `numpy`, `scipy` — data and math libraries
+* `ibapi` — Interactive Brokers Python API
+
+---
+
+## IB TWS Configuration
+
+1. Open **TWS/Gateway** → *File → Global Configuration → API → Settings*
+2. Enable “ActiveX and Socket Clients”
+3. Set Socket Port: `7497` (paper) or `7496` (live)
+4. Add `127.0.0.1` to trusted IPs
+5. Disable “Read-Only API”
+6. Under *Volatility & Analytics*, ensure **Daily Volatility Units** are selected
+
+---
+
+## Usage
+
+1. **Launch Application**
+
+   ```bash
+   # Requires uv package manager installed globally
+   uv run main.py
+   ```
+
+2. **Connect to IB**
+
+   * Host: `127.0.0.1`
+   * Port: `7497` (paper)
+   * Confirm green “Connected” status in GUI.
+
+3. **Enter Ticker**
+
+   * e.g. `AAPL`, `TSLA`, `NVDA`
+   * Fetches IV data automatically.
+
+4. **Analyze**
+
+   * View regression plots, volatility regimes, and time-series IV.
+   * Interpret slopes and percentiles for potential mean-reversion setups.
+
+---
+
+## References
+
+* [Interactive Brokers API Documentation](https://interactivebrokers.github.io/tws-api/)
+
+---
+
+## Disclaimer
+
+This application is for educational and analytical purposes only. Options trading involves substantial risk and may not be suitable for all investors. Theoretical models do not guarantee real-world performance. Always consult a qualified financial advisor before trading options. The author assumes no liability for any losses incurred.
+
+---
+
+**Built with:** Python, Tkinter, Interactive Brokers API
+**Version:** 1.0.0
